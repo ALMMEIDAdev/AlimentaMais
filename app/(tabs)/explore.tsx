@@ -1,110 +1,158 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { FeatureCard } from '@/components/FeatureCard';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 
-export default function TabTwoScreen() {
+export default function DonationsScreen() {
+  const theme = useColorScheme() ?? 'light';
+  const colors = Colors[theme];
+
+  const handleDonationPress = (donationTitle: string) => {
+    Alert.alert('Doação Disponível', `Interessado em: ${donationTitle}?\n\nEntre em contato com o doador para combinar a retirada.`);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <ThemedView style={styles.header}>
+        <ThemedText type="title" style={[styles.title, { color: colors.primary }]}>
+          🍽️ Doações Disponíveis
+        </ThemedText>
+        <ThemedText style={[styles.subtitle, { color: colors.text }]}>
+          Alimentos disponíveis para doação na sua região
+        </ThemedText>
       </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+          Frutas e Verduras
         </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
+
+        <FeatureCard
+          title="Cesta de Frutas Frescas"
+          description="5kg de frutas variadas (maçã, banana, laranja). Validade até amanhã. Região: Centro"
+          icon="apple"
+          onPress={() => handleDonationPress('Cesta de Frutas Frescas')}
+        />
+
+        <FeatureCard
+          title="Verduras Orgânicas"
+          description="Alface, tomate, cenoura e abobrinha. Colheita de hoje. Região: Vila Nova"
+          icon="grass"
+          onPress={() => handleDonationPress('Verduras Orgânicas')}
+        />
+      </ThemedView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+          Grãos e Cereais
         </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
+
+        <FeatureCard
+          title="Arroz e Feijão"
+          description="Pacotes de 1kg cada. Dentro da validade. Região: São João"
+          icon="grain"
+          onPress={() => handleDonationPress('Arroz e Feijão')}
+        />
+
+        <FeatureCard
+          title="Lentilha e Grão de Bico"
+          description="500g de cada. Alimentos não perecíveis. Região: Centro"
+          icon="eco"
+          onPress={() => handleDonationPress('Lentilha e Grão de Bico')}
+        />
+      </ThemedView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+          Refeições Prontas
         </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
+
+        <FeatureCard
+          title="Marmitas do Almoço"
+          description="10 marmitas com arroz, feijão, carne e salada. Preparadas hoje. Região: Bairro Alto"
+          icon="lunch-dining"
+          onPress={() => handleDonationPress('Marmitas do Almoço')}
+        />
+
+        <FeatureCard
+          title="Sopa Caseira"
+          description="2L de sopa de legumes nutritiva. Feita ontem. Região: Vila Nova"
+          icon="soup-kitchen"
+          onPress={() => handleDonationPress('Sopa Caseira')}
+        />
+      </ThemedView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+          Laticínios e Proteínas
         </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
+
+        <FeatureCard
+          title="Leite e Ovos"
+          description="2L de leite integral e 1 dúzia de ovos. Validade de 3 dias. Região: Centro"
+          icon="egg"
+          onPress={() => handleDonationPress('Leite e Ovos')}
+        />
+
+        <FeatureCard
+          title="Frango Congelado"
+          description="2kg de peito de frango congelado. Próprio para consumo. Região: São João"
+          icon="dinner-dining"
+          onPress={() => handleDonationPress('Frango Congelado')}
+        />
+      </ThemedView>
+
+      <ThemedView style={styles.footer}>
+        <ThemedText style={[styles.footerText, { color: colors.text }]}>
+          💡 Dica: Entre em contato rapidamente para garantir sua doação!
         </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+      </ThemedView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  header: {
+    padding: 20,
+    paddingTop: 40,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.8,
+    lineHeight: 24,
+  },
+  section: {
+    padding: 20,
+    backgroundColor: 'transparent',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  footer: {
+    padding: 20,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  footerText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    opacity: 0.8,
   },
 });

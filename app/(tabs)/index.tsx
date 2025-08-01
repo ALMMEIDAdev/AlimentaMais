@@ -1,75 +1,217 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import React from 'react';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import { FeatureCard } from '@/components/FeatureCard';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function HomeScreen() {
+  const theme = useColorScheme() ?? 'light';
+  const colors = Colors[theme];
+
+  const handleFeaturePress = (feature: string) => {
+    Alert.alert('AlimentaMais', `Funcionalidade "${feature}" em desenvolvimento!`);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+    >
+      <ThemedView style={styles.header}>
+        <View style={styles.headerTitleRow}>
+          <FontAwesome5 name="utensils" size={26} color={colors.primary} style={{ marginRight: 8 }} />
+          <ThemedText type="title" style={[styles.welcomeText, { color: colors.primary }]}>
+            AlimentaMais
+          </ThemedText>
+        </View>
+
+        <ThemedText style={[styles.subtitle, { color: colors.text }]}>
+          Conectando quem tem com quem precisa. Juntos contra o desperdício de alimentos!
+        </ThemedText>
+      </ThemedView>
+
+      <ThemedView style={styles.statsSection}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+          Nossa Comunidade
+        </ThemedText>
+
+        <ThemedView style={styles.statsRow}>
+          <ThemedView style={[styles.statCard, { backgroundColor: colors.primary }]}>
+            <ThemedText style={[styles.statNumber, { color: 'white' }]}>1,234</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: 'white' }]}>Doações Realizadas</ThemedText>
+          </ThemedView>
+
+          <ThemedView style={[styles.statCard, { backgroundColor: colors.secondary }]}>
+            <ThemedText style={[styles.statNumber, { color: 'white' }]}>567</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: 'white' }]}>Famílias Ajudadas</ThemedText>
+          </ThemedView>
+        </ThemedView>
+      </ThemedView>
+
+      <ThemedView style={styles.featuresSection}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+          Como Participar
+        </ThemedText>
+
+        <FeatureCard
+          title="Fazer uma Doação"
+          description="Cadastre alimentos que você tem disponível para doação. Ajude quem mais precisa!"
+          icon="volunteer-activism"
+          onPress={() => handleFeaturePress('Fazer Doação')}
+          style={styles.featureCard}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+
+        <FeatureCard
+          title="Receber Doações"
+          description="Encontre alimentos disponíveis na sua região. Receba com dignidade."
+          icon="food-bank"
+          onPress={() => handleFeaturePress('Receber Doações')}
+          style={styles.featureCard}
+        />
+
+        <FeatureCard
+          title="Pontos de Coleta"
+          description="Localize pontos de coleta próximos a você para facilitar a entrega."
+          icon="location-on"
+          onPress={() => handleFeaturePress('Pontos de Coleta')}
+          style={styles.featureCard}
+        />
+
+        <FeatureCard
+          title="Organizações Parceiras"
+          description="Conecte-se com ONGs e instituições que trabalham contra a fome."
+          icon="business"
+          onPress={() => handleFeaturePress('Organizações Parceiras')}
+          style={styles.featureCard}
+        />
+
+        <FeatureCard
+          title="Histórico de Doações"
+          description="Acompanhe suas doações realizadas e o impacto que você gerou."
+          icon="history"
+          onPress={() => handleFeaturePress('Histórico')}
+          style={styles.featureCard}
+        />
+
+        <FeatureCard
+          title="Comunidade"
+          description="Compartilhe experiências e inspire outros a participar da rede solidária."
+          icon="group"
+          onPress={() => handleFeaturePress('Comunidade')}
+          style={styles.featureCard}
+        />
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
+
+      <ThemedView style={styles.impactSection}>
+        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+          Nosso Impacto
+        </ThemedText>
+        <ThemedText style={[styles.impactText, { color: colors.text }]}>
+          💚 Mais de 5 toneladas de alimentos doados
+        </ThemedText>
+        <ThemedText style={[styles.impactText, { color: colors.text }]}>
+          🌍 Redução de 80% no desperdício alimentar
+        </ThemedText>
+        <ThemedText style={[styles.impactText, { color: colors.text }]}>
+          👥 100+ voluntários ativos na plataforma
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
+
+      <ThemedView style={styles.footer}>
+        <ThemedText style={[styles.footerText, { color: colors.text }]}>
+          💝 Juntos somos mais fortes contra a fome!
         </ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingTop: 40,
+    paddingBottom: 20,
+    alignItems: 'center',
+  },
+  headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
+    justifyContent: 'center',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  welcomeText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.8,
+    lineHeight: 24,
+  },
+  statsSection: {
+    marginTop: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 12,
+  },
+  statCard: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  featuresSection: {
+    marginTop: 32,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  featureCard: {
+    marginBottom: 16,
+  },
+  impactSection: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  impactText: {
+    fontSize: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  footer: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
