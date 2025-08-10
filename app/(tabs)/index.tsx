@@ -1,19 +1,32 @@
-import { FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { FeatureCard } from '@/components/FeatureCard';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
+import { useAuth } from '@/contexts/AuthContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function HomeScreen() {
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
+  const { logout } = useAuth();
 
   const handleFeaturePress = (feature: string) => {
     Alert.alert('AlimentaMais', `Funcionalidade "${feature}" em desenvolvimento!`);
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Tem certeza que deseja sair?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: logout },
+      ]
+    );
   };
 
   return (
@@ -22,11 +35,17 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
     >
       <ThemedView style={styles.header}>
-        <View style={styles.headerTitleRow}>
-          <FontAwesome5 name="utensils" size={26} color={colors.primary} style={{ marginRight: 8 }} />
-          <ThemedText type="title" style={[styles.welcomeText, { color: colors.primary }]}>
-            AlimentaMais
-          </ThemedText>
+        <View style={styles.headerTop}>
+          <View style={styles.headerTitleRow}>
+            <FontAwesome5 name="utensils" size={26} color={colors.primary} style={{ marginRight: 8 }} />
+            <ThemedText type="title" style={[styles.welcomeText, { color: colors.primary }]}>
+              AlimentaMais
+            </ThemedText>
+          </View>
+          
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <MaterialIcons name="logout" size={24} color={colors.primary} />
+          </TouchableOpacity>
         </View>
 
         <ThemedText style={[styles.subtitle, { color: colors.text }]}>
@@ -139,11 +158,22 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     alignItems: 'center',
   },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
   headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    flex: 1,
+  },
+  logoutButton: {
+    padding: 8,
   },
   welcomeText: {
     fontSize: 32,
