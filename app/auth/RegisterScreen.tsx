@@ -3,8 +3,10 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from '../../firebaseConfig';
 
 interface RegisterScreenProps {
   onRegister: (email: string, password: string) => Promise<boolean>;
@@ -34,12 +36,21 @@ export default function RegisterScreen({ onRegister, onBack, onLogin }: Register
 
     setIsLoading(true);
     try {
-      const success = await onRegister(email, password);
-      if (!success) {
-        Alert.alert('Erro', 'Erro ao criar conta. Tente novamente.');
+      await createUserWithEmailAndPassword(auth, email, password);
+      Alert.alert('Sucesso', 'Conta criada com sucesso!', [
+        {
+          text: 'OK',
+          onPress: onLogin
+        }
+      ]);
+    } catch (error: any) {
+      let message = 'Erro ao criar conta. Tente novamente.';
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'Este email já está em uso.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Email inválido.';
       }
-    } catch {
-      Alert.alert('Erro', 'Erro ao criar conta. Tente novamente.');
+      Alert.alert('Erro', message);
     } finally {
       setIsLoading(false);
     }

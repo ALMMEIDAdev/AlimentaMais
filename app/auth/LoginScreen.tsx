@@ -3,8 +3,11 @@ import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from '../../firebaseConfig';
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
@@ -15,6 +18,7 @@ interface LoginScreenProps {
 export default function LoginScreen({ onLogin, onBack, onRegister }: LoginScreenProps) {
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
+  const router = useRouter();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,12 +33,14 @@ export default function LoginScreen({ onLogin, onBack, onRegister }: LoginScreen
 
     setIsLoading(true);
     try {
-      const success = await onLogin(email, password);
-      if (!success) {
-        Alert.alert('Erro', 'Email ou senha incorretos');
+      await signInWithEmailAndPassword(auth, email, password);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      let message = 'Erro ao fazer login. Tente novamente.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        message = 'Email ou senha incorretos';
       }
-    } catch {
-      Alert.alert('Erro', 'Erro ao fazer login. Tente novamente.');
+      Alert.alert('Erro', message);
     } finally {
       setIsLoading(false);
     }
