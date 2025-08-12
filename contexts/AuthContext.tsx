@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../firebaseConfig';
 
 interface User {
   id: string;
@@ -22,37 +24,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadStoredUser();
-  }, []);
-
-  const loadStoredUser = async () => {
-    try {
-      const storedUser = await AsyncStorage.getItem('@AlimentaMais:user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const userData = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
+        };
+        setUser(userData);
+        await AsyncStorage.setItem('@AlimentaMais:user', JSON.stringify(userData));
+      } else {
+        setUser(null);
+        await AsyncStorage.removeItem('@AlimentaMais:user');
       }
-    } catch (error) {
-      console.log('Erro ao carregar usuário:', error);
-    } finally {
       setIsLoading(false);
-    }
-  };
+    });
+    return () => unsubscribe();
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Simular autenticação (substitua por sua API real)
-      if (email && password) {
-        const userData = {
-          id: '1',
-          email,
-          name: email.split('@')[0],
-        };
-        
-        await AsyncStorage.setItem('@AlimentaMais:user', JSON.stringify(userData));
-        setUser(userData);
-        return true;
-      }
-      return false;
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      const userData = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
+      };
+      setUser(userData);
+      await AsyncStorage.setItem('@AlimentaMais:user', JSON.stringify(userData));
+      return true;
     } catch (error) {
       console.log('Erro no login:', error);
       return false;
@@ -61,19 +62,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Simular registro (substitua por sua API real)
-      if (email && password) {
-        const userData = {
-          id: Date.now().toString(),
-          email,
-          name: email.split('@')[0],
-        };
-        
-        await AsyncStorage.setItem('@AlimentaMais:user', JSON.stringify(userData));
-        setUser(userData);
-        return true;
-      }
-      return false;
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+      const userData = {
+        id: firebaseUser.uid,
+        email: firebaseUser.email || '',
+        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || '',
+      };
+      setUser(userData);
+      await AsyncStorage.setItem('@AlimentaMais:user', JSON.stringify(userData));
+      return true;
     } catch (error) {
       console.log('Erro no registro:', error);
       return false;
@@ -82,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      await signOut(auth);
       await AsyncStorage.removeItem('@AlimentaMais:user');
       setUser(null);
     } catch (error) {

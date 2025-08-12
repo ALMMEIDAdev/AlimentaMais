@@ -1,13 +1,20 @@
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import React, { useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { auth } from '../../firebaseConfig';
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Colors } from "@/constants/Colors";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { auth } from "../../firebaseConfig";
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
@@ -15,66 +22,86 @@ interface LoginScreenProps {
   onRegister: () => void;
 }
 
-export default function LoginScreen({ onLogin, onBack, onRegister }: LoginScreenProps) {
-  const theme = useColorScheme() ?? 'light';
+export default function LoginScreen({
+  onLogin,
+  onBack,
+  onRegister,
+}: LoginScreenProps) {
+  const theme = useColorScheme() ?? "light";
   const colors = Colors[theme];
   const router = useRouter();
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      Alert.alert("Erro", "Por favor, preencha todos os campos");
       return;
     }
 
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     } catch (error: any) {
-      let message = 'Erro ao fazer login. Tente novamente.';
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        message = 'Email ou senha incorretos';
+      let message = "Erro ao fazer login. Tente novamente.";
+      if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
+        message = "Email ou senha incorretos";
       }
-      Alert.alert('Erro', message);
+      Alert.alert("Erro", message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
+    <ThemedView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <MaterialIcons name="arrow-back" size={24} color={colors.text} />
       </TouchableOpacity>
 
       <View style={styles.header}>
-        <ThemedText type="title" style={[styles.title, { color: colors.primary }]}>
+        <ThemedText
+          type="title"
+          style={[styles.title, { color: colors.primary }]}
+        >
           Alimenta<ThemedText style={{ color: colors.secondary }}>+</ThemedText>
         </ThemedText>
-        
+
         <View style={styles.loginIconContainer}>
           <View style={[styles.loginIcon, { backgroundColor: colors.text }]}>
             <MaterialIcons name="person" size={40} color={colors.background} />
           </View>
         </View>
-        
-        <ThemedText type="subtitle" style={[styles.subtitle, { color: colors.primary }]}>
+
+        <ThemedText
+          type="subtitle"
+          style={[styles.subtitle, { color: colors.primary }]}
+        >
           →Login
         </ThemedText>
       </View>
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
-          <ThemedText style={[styles.label, { color: colors.text }]}>Email</ThemedText>
+          <ThemedText style={[styles.label, { color: colors.text }]}>
+            Email
+          </ThemedText>
           <TextInput
-            style={[styles.input, { borderColor: colors.primary, color: colors.text }]}
+            style={[
+              styles.input,
+              { borderColor: colors.primary, color: colors.text },
+            ]}
             placeholder="username@gmail.com"
-            placeholderTextColor={colors.text + '80'}
+            placeholderTextColor={colors.text + "80"}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -84,12 +111,17 @@ export default function LoginScreen({ onLogin, onBack, onRegister }: LoginScreen
         </View>
 
         <View style={styles.inputContainer}>
-          <ThemedText style={[styles.label, { color: colors.text }]}>Senha</ThemedText>
+          <ThemedText style={[styles.label, { color: colors.text }]}>
+            Senha
+          </ThemedText>
           <View style={styles.passwordContainer}>
             <TextInput
-              style={[styles.passwordInput, { borderColor: colors.primary, color: colors.text }]}
+              style={[
+                styles.passwordInput,
+                { borderColor: colors.primary, color: colors.text },
+              ]}
               placeholder="••••••••••"
-              placeholderTextColor={colors.text + '80'}
+              placeholderTextColor={colors.text + "80"}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -99,10 +131,10 @@ export default function LoginScreen({ onLogin, onBack, onRegister }: LoginScreen
               style={styles.eyeButton}
               onPress={() => setShowPassword(!showPassword)}
             >
-              <MaterialIcons 
-                name={showPassword ? "visibility" : "visibility-off"} 
-                size={20} 
-                color={colors.primary} 
+              <MaterialIcons
+                name={showPassword ? "visibility" : "visibility-off"}
+                size={20}
+                color={colors.primary}
               />
             </TouchableOpacity>
           </View>
@@ -135,21 +167,37 @@ export default function LoginScreen({ onLogin, onBack, onRegister }: LoginScreen
         </TouchableOpacity>
 
         <View style={styles.divider}>
-          <View style={[styles.dividerLine, { backgroundColor: colors.text + '40' }]} />
-          <ThemedText style={[styles.dividerText, { color: colors.text }]}>Entrar com:</ThemedText>
-          <View style={[styles.dividerLine, { backgroundColor: colors.text + '40' }]} />
+          <View
+            style={[
+              styles.dividerLine,
+              { backgroundColor: colors.text + "40" },
+            ]}
+          />
+          <ThemedText style={[styles.dividerText, { color: colors.text }]}>
+            Entrar com:
+          </ThemedText>
+          <View
+            style={[
+              styles.dividerLine,
+              { backgroundColor: colors.text + "40" },
+            ]}
+          />
         </View>
 
-        <TouchableOpacity style={[styles.googleButton, { borderColor: colors.text + '40' }]}>
+        <TouchableOpacity
+          style={[styles.googleButton, { borderColor: colors.text + "40" }]}
+        >
           <MaterialIcons name="g-translate" size={20} color="#4285F4" />
         </TouchableOpacity>
 
         <View style={styles.registerContainer}>
           <ThemedText style={[styles.registerText, { color: colors.text }]}>
-            Novo Por Aqui? 
+            Novo Por Aqui?
           </ThemedText>
           <TouchableOpacity onPress={onRegister}>
-            <ThemedText style={[styles.registerLink, { color: colors.primary }]}>
+            <ThemedText
+              style={[styles.registerLink, { color: colors.primary }]}
+            >
               Cadastre-se
             </ThemedText>
           </TouchableOpacity>
@@ -166,16 +214,16 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginTop: 50,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
     marginBottom: 40,
   },
   title: {
     fontSize: 36,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   loginIconContainer: {
@@ -185,12 +233,12 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   subtitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   form: {
     flex: 1,
@@ -201,7 +249,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 8,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   input: {
     height: 50,
@@ -211,8 +259,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   passwordInput: {
     flex: 1,
@@ -224,47 +272,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eyeButton: {
-    position: 'absolute',
+    position: "absolute",
     right: 15,
     padding: 5,
   },
   optionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 30,
   },
   rememberContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   rememberText: {
     fontSize: 14,
   },
   forgotText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   loginButton: {
     height: 50,
     borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 30,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   loginButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   dividerLine: {
@@ -279,21 +327,21 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 30,
   },
   registerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   registerText: {
     fontSize: 16,
   },
   registerLink: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 5,
   },
 });

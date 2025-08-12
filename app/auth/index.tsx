@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
@@ -9,9 +10,14 @@ type AuthScreen = 'welcome' | 'login' | 'register';
 export default function AuthFlow() {
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>('welcome');
   const { login, register } = useAuth();
+  const router = useRouter();
 
   const handleLogin = async (email: string, password: string) => {
-    return await login(email, password);
+    const success = await login(email, password);
+    if (success) {
+      router.replace('/(tabs)');
+    }
+    return success;
   };
 
   const handleRegister = async (email: string, password: string) => {
