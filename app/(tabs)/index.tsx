@@ -1,4 +1,5 @@
 import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -13,6 +14,7 @@ export default function HomeScreen() {
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
   const { logout } = useAuth();
+  const navigation = useNavigation<any>();
 
   const handleFeaturePress = (feature: string) => {
     Alert.alert('AlimentaMais', `Funcionalidade "${feature}" em desenvolvimento!`);
@@ -80,7 +82,7 @@ export default function HomeScreen() {
           title="Fazer uma Doação"
           description="Cadastre alimentos que você tem disponível para doação. Ajude quem mais precisa!"
           icon="volunteer-activism"
-          onPress={() => handleFeaturePress('Fazer Doação')}
+          onPress={() => navigation.navigate('DonationScreen')}
           style={styles.featureCard}
         />
 
