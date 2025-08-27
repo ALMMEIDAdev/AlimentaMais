@@ -17,6 +17,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
 export default function DonationScreen() {
   const theme = useColorScheme() ?? 'light';
@@ -127,28 +129,42 @@ export default function DonationScreen() {
     );
   };
 
-  const handleSubmitDonation = () => {
-    if (!foodName.trim()) {
-      Alert.alert('Erro', 'Por favor, informe o nome do alimento.');
-      return;
-    }
+  const handleSubmitDonation = async () => {
+  if (!foodName.trim()) {
+    Alert.alert("Erro", "Por favor, informe o nome do alimento.");
+    return;
+  }
 
-    if (!description.trim()) {
-      Alert.alert('Erro', 'Por favor, adicione uma descrição.');
-      return;
-    }
+  if (!description.trim()) {
+    Alert.alert("Erro", "Por favor, adicione uma descrição.");
+    return;
+  }
 
-    // TODO: Integrar com Firebase
+  try {
+    // 👉 Salva no Firestore
+    await addDoc(collection(db, "doacoes"), {
+      nome: foodName,
+      descricao: description,
+      fotos: photos || [], // caso queira salvar os caminhos/urls depois
+      criadoEm: serverTimestamp(),
+    });
+
     Alert.alert(
-      'Sucesso!',
-      `Sua doação foi cadastrada com sucesso! ${photos.length > 0 ? `(${photos.length} foto${photos.length > 1 ? 's' : ''} incluída${photos.length > 1 ? 's' : ''})` : ''} Em breve ela estará disponível para quem precisa.`,
+      "Sucesso!",
+      `Sua doação foi cadastrada com sucesso! ${
+        photos.length > 0
+          ? `(${photos.length} foto${photos.length > 1 ? "s" : ""} incluída${
+              photos.length > 1 ? "s" : ""
+            })`
+          : ""
+      } Em breve ela estará disponível para quem precisa.`,
       [
         {
-          text: 'OK',
+          text: "OK",
           onPress: () => {
             // Limpar os campos
-            setFoodName('');
-            setDescription('');
+            setFoodName("");
+            setDescription("");
             setPhotos([]);
             // Voltar para a tela anterior (index)
             router.back();
@@ -156,7 +172,11 @@ export default function DonationScreen() {
         },
       ]
     );
-  };
+  } catch (error) {
+    console.error("Erro ao salvar doação:", error);
+    Alert.alert("Erro", "Não foi possível cadastrar sua doação. Tente novamente.");
+  }
+};
 
   const handleGoBack = () => {
     if (foodName.trim() || description.trim() || photos.length > 0) {
