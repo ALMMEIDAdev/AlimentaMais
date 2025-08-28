@@ -29,7 +29,7 @@ export default function DonationScreen() {
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
 
-  // Solicitar permissões ao carregar a tela
+  
   useEffect(() => {
     (async () => {
       if (Platform.OS !== 'web') {
@@ -141,11 +141,11 @@ export default function DonationScreen() {
   }
 
   try {
-    // 👉 Salva no Firestore
+  
     await addDoc(collection(db, "doacoes"), {
       nome: foodName,
       descricao: description,
-      fotos: photos || [], // caso queira salvar os caminhos/urls depois
+      fotos: photos || [], 
       criadoEm: serverTimestamp(),
     });
 
@@ -162,11 +162,11 @@ export default function DonationScreen() {
         {
           text: "OK",
           onPress: () => {
-            // Limpar os campos
+          
             setFoodName("");
             setDescription("");
             setPhotos([]);
-            // Voltar para a tela anterior (index)
+            
             router.back();
           },
         },

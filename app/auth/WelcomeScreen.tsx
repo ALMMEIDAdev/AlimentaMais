@@ -22,7 +22,7 @@ export default function WelcomeScreen({ onLogin, onRegister }: WelcomeScreenProp
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
 
-  // Memoização dos estilos para melhor performance
+  
   const containerStyle = useMemo(() => [
     styles.container, 
     { backgroundColor: colors.background }
@@ -50,7 +50,7 @@ export default function WelcomeScreen({ onLogin, onRegister }: WelcomeScreenProp
     { borderColor: colors.primary }
   ], [colors.primary]);
 
-  // Callbacks memoizados para evitar re-renders desnecessários
+  
   const handleLogin = useCallback(() => {
     onLogin();
   }, [onLogin]);
@@ -59,14 +59,14 @@ export default function WelcomeScreen({ onLogin, onRegister }: WelcomeScreenProp
     onRegister();
   }, [onRegister]);
 
-  // Melhorar acessibilidade
+ 
   const accessibilityHint = Platform.select({
     ios: 'Toque duas vezes para ativar',
     android: 'Toque para ativar',
     default: 'Toque para ativar'
   });
 
-  // Validação das props
+ 
   if (!onLogin || !onRegister) {
     console.warn('WelcomeScreen: onLogin and onRegister props are required');
     return null;
