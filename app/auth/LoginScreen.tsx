@@ -2,17 +2,18 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { auth } from "../../firebaseConfig";
 
@@ -20,16 +21,19 @@ interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
   onBack: () => void;
   onRegister: () => void;
+  onGoogleLogin?: (googleData: any) => void;
 }
 
 export default function LoginScreen({
   onLogin,
   onBack,
   onRegister,
+  onGoogleLogin,
 }: LoginScreenProps) {
   const theme = useColorScheme() ?? "light";
   const colors = Colors[theme];
   const router = useRouter();
+  const { signInWithGoogle, isLoading: isGoogleLoading } = useGoogleAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,6 +61,22 @@ export default function LoginScreen({
       Alert.alert("Erro", message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const googleData = await signInWithGoogle();
+      if (googleData && onGoogleLogin) {
+        onGoogleLogin(googleData);
+      }
+    } catch (error: any) {
+      console.error('Erro no login com Google:', error);
+      const errorMessage = error.message || 'Erro ao fazer login com Google';
+      Alert.alert(
+        'Erro no Login com Google', 
+        `${errorMessage}\n\nVerifique se:\n• O Google Auth está configurado corretamente\n• Os domínios estão autorizados no Google Cloud Console`
+      );
     }
   };
 
@@ -186,8 +206,20 @@ export default function LoginScreen({
 
         <TouchableOpacity
           style={[styles.googleButton, { borderColor: colors.text + "40" }]}
+          onPress={handleGoogleLogin}
+          disabled={isGoogleLoading}
+          activeOpacity={0.8}
         >
-          <MaterialIcons name="g-translate" size={20} color="#4285F4" />
+          {isGoogleLoading ? (
+            <ActivityIndicator color="#4285F4" size="small" />
+          ) : (
+            <>
+              <MaterialIcons name="g-translate" size={20} color="#4285F4" />
+              <ThemedText style={[styles.googleButtonText, { color: colors.text, marginLeft: 8 }]}>
+                Continuar com Google
+              </ThemedText>
+            </>
+          )}
         </TouchableOpacity>
 
         <View style={styles.registerContainer}>
@@ -330,6 +362,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 30,
+    flexDirection: "row",
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: "500",
   },
   registerContainer: {
     flexDirection: "row",

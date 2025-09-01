@@ -4,11 +4,11 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React, { useCallback, useMemo } from 'react';
 import {
-  Dimensions,
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  View
+    Dimensions,
+    Platform,
+    StyleSheet,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 interface WelcomeScreenProps {
@@ -50,6 +50,8 @@ export default function WelcomeScreen({ onLogin, onRegister }: WelcomeScreenProp
     { borderColor: colors.primary }
   ], [colors.primary]);
 
+
+
   
   const handleLogin = useCallback(() => {
     onLogin();
@@ -58,6 +60,8 @@ export default function WelcomeScreen({ onLogin, onRegister }: WelcomeScreenProp
   const handleRegister = useCallback(() => {
     onRegister();
   }, [onRegister]);
+
+
 
  
   const accessibilityHint = Platform.select({
@@ -137,6 +141,8 @@ export default function WelcomeScreen({ onLogin, onRegister }: WelcomeScreenProp
             Cadastre-se
           </ThemedText>
         </TouchableOpacity>
+
+
       </View>
     </ThemedView>
   );
@@ -218,6 +224,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     backgroundColor: 'transparent',
   },
+
   buttonText: {
     fontSize: 18,
     fontWeight: '600',

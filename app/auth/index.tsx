@@ -9,7 +9,8 @@ type AuthScreen = 'welcome' | 'login' | 'register';
 
 export default function AuthFlow() {
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>('welcome');
-  const { login, register } = useAuth();
+  const [googleUserData, setGoogleUserData] = useState<any>(null);
+  const { login, register, loginWithGoogle } = useAuth();
   const router = useRouter();
 
   const handleLogin = async (email: string, password: string) => {
@@ -22,6 +23,12 @@ export default function AuthFlow() {
 
   const handleRegister = async (email: string, password: string) => {
     return await register(email, password);
+  };
+
+  const handleGoogleLogin = async (googleData: any) => {
+    // Salvar dados do Google e ir para a tela de registro
+    setGoogleUserData(googleData);
+    setCurrentScreen('register');
   };
 
   if (currentScreen === 'welcome') {
@@ -39,6 +46,7 @@ export default function AuthFlow() {
         onLogin={handleLogin}
         onBack={() => setCurrentScreen('welcome')}
         onRegister={() => setCurrentScreen('register')}
+        onGoogleLogin={handleGoogleLogin}
       />
     );
   }
@@ -48,6 +56,7 @@ export default function AuthFlow() {
       onRegister={handleRegister}
       onBack={() => setCurrentScreen('welcome')}
       onLogin={() => setCurrentScreen('login')}
+      googleUserData={googleUserData}
     />
   );
 }
