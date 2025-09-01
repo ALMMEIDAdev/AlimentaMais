@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /users/{userId} {
+      
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+
+      allow write: if request.auth != null && request.auth.uid == userId;
+      
+
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      allow create: if 
+        request.auth != null && 
+        request.auth.uid == userId &&
+        request.resource.data.keys().hasAll(['uid', 'email', 'cpf', 'birthDate', 'createdAt', 'emailVerified', 'profileComplete']) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.email is string &&
+        request.resource.data.cpf is string &&
+        request.resource.data.cpf.size() == 11 &&
+        request.resource.data.birthDate is timestamp &&
+        request.resource.data.createdAt is timestamp &&
+        request.resource.data.emailVerified is bool &&
+        request.resource.data.profileComplete is bool;
+    }
+    
+    // Regras para verificação de CPF duplicado
+    match /users/{userId} {
+      // Permitir consultas para verificar CPF duplicado
+      allow list: if request.auth != null && 
+        request.query.limit <= 1 &&
+        request.query.filters.size() == 1 &&
+        request.query.filters[0].fieldPath == 'cpf';
+    }
+    
+    // Regras para outras coleções (futuras)
+    match /{document=**} {
+
+      allow read, write: if false;
+    }
+  }
+}

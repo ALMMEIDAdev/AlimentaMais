@@ -2,26 +2,46 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useCPFValidation } from '@/hooks/useCPFValidation';
 import { MaterialIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import React, { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { auth } from '../../firebaseConfig';
+import { doc, setDoc } from 'firebase/firestore';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../../firebaseConfig';
 
 interface RegisterScreenProps {
   onRegister: (email: string, password: string) => Promise<boolean>;
   onBack: () => void;
   onLogin: () => void;
+  onEmailVerification: (email: string) => void;
 }
 
-export default function RegisterScreen({ onRegister, onBack, onLogin }: RegisterScreenProps) {
+export default function RegisterScreen({ onRegister, onBack, onLogin, onEmailVerification }: RegisterScreenProps) {
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
+  const { formatCPF, validateCPF, checkCPFExists, getCPFNumbers, validateCPFRealTime, isCheckingCPF } = useCPFValidation();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+
+  const validateBirthDate = (date: Date) => {
+    const today = new Date();
+    const age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+      return age - 1 >= 18;
+    }
+    return age >= 18;
+  };
 
   const validatePassword = (password: string) => {
     const minLength = password.length >= 8;
@@ -41,8 +61,18 @@ export default function RegisterScreen({ onRegister, onBack, onLogin }: Register
   };
 
   const handleRegister = async () => {
-    if (!email.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim() || !cpf.trim()) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
+      return;
+    }
+
+    if (!validateCPF(cpf)) {
+      Alert.alert('Erro', 'CPF inválido');
+      return;
+    }
+
+    if (!validateBirthDate(birthDate)) {
+      Alert.alert('Erro', 'Você deve ter pelo menos 18 anos para se cadastrar');
       return;
     }
 
@@ -57,15 +87,44 @@ export default function RegisterScreen({ onRegister, onBack, onLogin }: Register
 
     setIsLoading(true);
     try {
-      // Criar conta de autenticação
-      await createUserWithEmailAndPassword(auth, email, password);
 
-      Alert.alert('Sucesso', 'Conta criada com sucesso!', [
-        {
-          text: 'OK',
-          onPress: onLogin
-        }
-      ]);
+      const cpfExists = await checkCPFExists(cpf);
+      if (cpfExists) {
+        Alert.alert('Erro', 'Este CPF já está cadastrado em outra conta. Se você esqueceu sua senha, use a opção de recuperação.');
+        setIsLoading(false);
+        return;
+      }
+
+    
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+    
+      const userData = {
+        uid: user.uid,
+        email: email,
+        cpf: getCPFNumbers(cpf), 
+        birthDate: birthDate.toISOString(),
+        createdAt: new Date().toISOString(),
+        emailVerified: false,
+        profileComplete: false
+      };
+
+      await setDoc(doc(db, 'users', user.uid), userData);
+
+
+      Alert.alert(
+        'Conta Criada!', 
+        'Sua conta foi criada com sucesso! Um email de verificação foi enviado para sua caixa de entrada. Verifique seu email e clique no link para ativar sua conta.',
+        [
+          {
+            text: 'Verificar Email',
+            onPress: () => {
+              onEmailVerification(email);
+            }
+          }
+        ]
+      );
     } catch (error: any) {
       let message = 'Erro ao criar conta. Tente novamente.';
       if (error.code === 'auth/email-already-in-use') {
@@ -81,7 +140,15 @@ export default function RegisterScreen({ onRegister, onBack, onLogin }: Register
     }
   };
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setBirthDate(selectedDate);
+    }
+  };
+
   const passwordValidation = validatePassword(password);
+  const cpfValidation = validateCPFRealTime(cpf);
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -123,6 +190,62 @@ export default function RegisterScreen({ onRegister, onBack, onLogin }: Register
               autoCapitalize="none"
               autoComplete="email"
             />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <ThemedText style={[styles.label, { color: colors.text }]}>CPF</ThemedText>
+            <TextInput
+              style={[styles.input, { borderColor: colors.primary, color: colors.text }]}
+              placeholder="000.000.000-00"
+              placeholderTextColor={colors.text + '80'}
+              value={cpf}
+              onChangeText={(text) => setCpf(formatCPF(text))}
+              keyboardType="numeric"
+              maxLength={14}
+              autoComplete="off"
+            />
+            {cpf.length > 0 && (
+              <View style={styles.validationItem}>
+                <MaterialIcons 
+                  name={cpfValidation.isValid ? "check-circle" : "error"} 
+                  size={16} 
+                  color={cpfValidation.isValid ? colors.secondary : colors.textSecondary} 
+                />
+                <ThemedText style={[styles.validationText, { 
+                    color: cpfValidation.isValid ? colors.secondary : colors.textSecondary 
+                  }]}>
+                  {cpfValidation.message}
+                  {isCheckingCPF && ' (verificando...)'}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <ThemedText style={[styles.label, { color: colors.text }]}>Data de Nascimento</ThemedText>
+            <TouchableOpacity
+              style={[styles.dateInput, { borderColor: colors.primary }]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <ThemedText style={[styles.dateText, { color: colors.text }]}>
+                {birthDate.toLocaleDateString('pt-BR')}
+              </ThemedText>
+              <MaterialIcons name="calendar-today" size={20} color={colors.primary} />
+            </TouchableOpacity>
+            {birthDate && (
+              <View style={styles.validationItem}>
+                <MaterialIcons 
+                  name={validateBirthDate(birthDate) ? "check-circle" : "error"} 
+                  size={16} 
+                  color={validateBirthDate(birthDate) ? colors.secondary : colors.textSecondary} 
+                />
+                <ThemedText style={[styles.validationText, { 
+                    color: validateBirthDate(birthDate) ? colors.secondary : colors.textSecondary 
+                  }]}>
+                  {validateBirthDate(birthDate) ? 'Idade válida (18+ anos)' : 'Você deve ter pelo menos 18 anos'}
+                </ThemedText>
+              </View>
+            )}
           </View>
 
           <View style={styles.inputContainer}>
@@ -223,13 +346,15 @@ export default function RegisterScreen({ onRegister, onBack, onLogin }: Register
           <TouchableOpacity
             style={[styles.registerButton, { backgroundColor: colors.primary }]}
             onPress={handleRegister}
-            disabled={isLoading}
+            disabled={isLoading || isCheckingCPF}
             activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="white" />
             ) : (
-              <ThemedText style={styles.registerButtonText}>Registrar-se</ThemedText>
+              <ThemedText style={styles.registerButtonText}>
+                {isCheckingCPF ? 'Verificando CPF...' : 'Criar Conta'}
+              </ThemedText>
             )}
           </TouchableOpacity>
 
@@ -264,6 +389,17 @@ export default function RegisterScreen({ onRegister, onBack, onLogin }: Register
           </View>
         </View>
       </ScrollView>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={birthDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateChange}
+          maximumDate={new Date()}
+          minimumDate={new Date(1900, 0, 1)}
+        />
+      )}
     </ThemedView>
   );
 }
@@ -406,5 +542,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 8,
     flex: 1,
+  },
+  dateInput: {
+    height: 50,
+    borderWidth: 2,
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    fontSize: 16,
+  },
+  dateText: {
+    flex: 1,
+    marginRight: 10,
   },
 });

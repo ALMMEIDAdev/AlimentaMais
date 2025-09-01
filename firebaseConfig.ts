@@ -13,6 +13,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// Usar getAuth padrão que funciona em todas as plataformas
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export default app;

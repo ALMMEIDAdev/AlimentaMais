@@ -4,8 +4,7 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth } from "../../firebaseConfig";
 
 interface LoginScreenProps {
   onLogin: (email: string, password: string) => Promise<boolean>;
@@ -44,17 +42,43 @@ export default function LoginScreen({
 
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/(tabs)");
-    } catch (error: any) {
-      let message = "Erro ao fazer login. Tente novamente.";
-      if (
-        error.code === "auth/user-not-found" ||
-        error.code === "auth/wrong-password"
-      ) {
-        message = "Email ou senha incorretos";
+      const success = await onLogin(email, password);
+      if (success) {
+        router.replace("/(tabs)");
       }
-      Alert.alert("Erro", message);
+    } catch (error: any) {
+      console.log('Erro capturado na tela de login:', error);
+      console.log('Código do erro:', error.code);
+      console.log('Mensagem do erro:', error.message);
+      
+      let message = "Erro ao fazer login. Tente novamente.";
+      let title = "Erro";
+      
+      // Tratar erros específicos do Firebase
+      if (error.code === "auth/user-not-found") {
+        title = "Usuário Não Encontrado";
+        message = "Não existe uma conta com este email. Verifique o email ou crie uma nova conta.";
+      } else if (error.code === "auth/wrong-password") {
+        title = "Senha Incorreta";
+        message = "A senha informada está incorreta. Tente novamente.";
+      } else if (error.code === "auth/invalid-credential") {
+        title = "Credenciais Inválidas";
+        message = "Email ou senha incorretos. Verifique suas credenciais e tente novamente.";
+      } else if (error.code === "auth/invalid-email") {
+        title = "Email Inválido";
+        message = "O formato do email está incorreto. Verifique e tente novamente.";
+      } else if (error.code === "auth/too-many-requests") {
+        title = "Muitas Tentativas";
+        message = "Muitas tentativas de login. Aguarde alguns minutos e tente novamente.";
+      } else if (error.code === "auth/network-request-failed") {
+        title = "Erro de Conexão";
+        message = "Problema de conexão com a internet. Verifique sua conexão e tente novamente.";
+      } else if (error.message === "EMAIL_NOT_VERIFIED") {
+        title = "Email Não Verificado";
+        message = "Seu email ainda não foi verificado. Verifique sua caixa de entrada, copie o token de verificação do email e complete a verificação antes de fazer login.";
+      }
+      
+      Alert.alert(title, message);
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +188,21 @@ export default function LoginScreen({
           ) : (
             <ThemedText style={styles.loginButtonText}>Entrar</ThemedText>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.helpButton}
+          onPress={() => {
+            Alert.alert(
+              'Precisa de Ajuda?',
+              '• Verificar email: Clique no link enviado para sua caixa de entrada\n• Esqueceu a senha: Use a opção "Esqueceu sua Senha?"\n• Problemas técnicos: Tente novamente em alguns instantes',
+              [{ text: 'Entendi' }]
+            );
+          }}
+        >
+          <ThemedText style={[styles.helpButtonText, { color: colors.primary }]}>
+            Precisa de ajuda?
+          </ThemedText>
         </TouchableOpacity>
 
         <View style={styles.divider}>
@@ -309,6 +348,14 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "600",
+  },
+  helpButton: {
+    alignSelf: "center",
+    marginBottom: 30,
+  },
+  helpButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
   },
   divider: {
     flexDirection: "row",
