@@ -17,8 +17,10 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import * as FileSystem from "expo-file-system";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+
 
 export default function DonationScreen() {
   const theme = useColorScheme() ?? 'light';
@@ -29,6 +31,17 @@ export default function DonationScreen() {
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
 
+  const uriToBase64 = async (uri: string) => {
+  try {
+    const base64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return base64;
+  } catch (error) {
+    console.error("Erro ao converter imagem para Base64:", error);
+    return null;
+  }
+};
   
   useEffect(() => {
     (async () => {
@@ -79,7 +92,11 @@ export default function DonationScreen() {
 
       if (!result.canceled && result.assets && result.assets[0]) {
         const newPhoto = result.assets[0].uri;
-        setPhotos(prev => [...prev, newPhoto]);
+        // Converte para Base64
+        const base64 = await uriToBase64(newPhoto)
+        if (base64) {
+          setPhotos(prev => [...prev, base64]); // agora salva em base64
+  }
       }
     } catch {
       Alert.alert('Erro', 'Não foi possível abrir a câmera.');
@@ -94,21 +111,24 @@ export default function DonationScreen() {
         aspect: [1, 1],
         quality: 0.8,
         allowsMultipleSelection: true,
-        selectionLimit: 5 - photos.length,
+        selectionLimit: 2 - photos.length,
       });
 
       if (!result.canceled && result.assets) {
-        const newPhotos = result.assets.map(asset => asset.uri);
-        setPhotos(prev => [...prev, ...newPhotos]);
-      }
+  const base64Photos = await Promise.all(result.assets.map(async (asset) => {return await uriToBase64(asset.uri);
+    })
+  );
+
+      setPhotos(prev => [...prev, ...base64Photos.filter((p): p is string => Boolean(p))]);
+}
     } catch {
       Alert.alert('Erro', 'Não foi possível acessar a galeria.');
     }
   };
 
   const handleAddPhoto = () => {
-    if (photos.length >= 5) {
-      Alert.alert('Limite Atingido', 'Você já adicionou o máximo de 5 fotos.');
+    if (photos.length >= 2) {
+      Alert.alert('Limite Atingido', 'Você já adicionou o máximo de 2 fotos.');
       return;
     }
     showImagePickerOptions();
@@ -145,7 +165,7 @@ export default function DonationScreen() {
     await addDoc(collection(db, "doacoes"), {
       nome: foodName,
       descricao: description,
-      fotos: photos || [], 
+      fotos: photos, 
       criadoEm: serverTimestamp(),
     });
 
@@ -272,7 +292,7 @@ export default function DonationScreen() {
           <View style={styles.photosContainer}>
             {photos.map((photo, index) => (
               <View key={index} style={styles.photoItem}>
-                <Image source={{ uri: photo }} style={styles.photo} />
+                <Image source={{ uri: `data:image/jpeg;base64,${photo}` }} style={styles.photo} />
                 <TouchableOpacity
                   style={[styles.removePhotoButton, { backgroundColor: colors.error }]}
                   onPress={() => handleRemovePhoto(index)}
@@ -292,14 +312,14 @@ export default function DonationScreen() {
                   Adicionar Foto
                 </ThemedText>
                 <ThemedText style={[styles.photoCount, { color: colors.textSecondary }]}>
-                  {photos.length}/5
+                  {photos.length}/2
                 </ThemedText>
               </TouchableOpacity>
             )}
           </View>
 
           <ThemedText style={[styles.photoLimit, { color: colors.textSecondary }]}>
-            Máximo de 5 fotos • Toque para adicionar da câmera ou galeria
+            Máximo de 2 fotos • Toque para adicionar da câmera ou galeria
           </ThemedText>
         </ThemedView>
 
