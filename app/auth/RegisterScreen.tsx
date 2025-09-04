@@ -37,6 +37,7 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
   const [cep, setCep] = useState('');
   const [city, setCity] = useState('');
   const [street, setStreet] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
   const [addressComplement, setAddressComplement] = useState('');
   const [birthDate, setBirthDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -62,8 +63,8 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
     return age >= 18;
   };
 
-  const validateAddress = (city: string, street: string) => {
-    return city.trim().length >= 2 && street.trim().length >= 5;
+  const validateAddress = (city: string, street: string, neighborhood: string) => {
+    return city.trim().length >= 2 && street.trim().length >= 5 && neighborhood.trim().length >= 2;
   };
 
   const validateName = (name: string) => {
@@ -89,7 +90,7 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
   };
 
   const handleRegister = async () => {
-    if (!name.trim() || !email.trim() || !password.trim() || !cpf.trim() || !cep.trim() || !city.trim() || !street.trim()) {
+    if (!name.trim() || !email.trim() || !password.trim() || !cpf.trim() || !cep.trim() || !city.trim() || !street.trim() || !neighborhood.trim()) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos');
       return;
     }
@@ -114,8 +115,8 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
       return;
     }
 
-    if (!validateAddress(city, street)) {
-      Alert.alert('Erro', 'Cidade e rua são obrigatórios');
+    if (!validateAddress(city, street, neighborhood)) {
+      Alert.alert('Erro', 'Cidade, rua e bairro são obrigatórios');
       return;
     }
 
@@ -159,6 +160,7 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
         cep: getCEPNumbers(cep),
         city: city.trim(),
         street: street.trim(),
+        neighborhood: neighborhood.trim(),
         addressComplement: addressComplement.trim(),
         birthDate: birthDate.toISOString(),
         createdAt: new Date().toISOString(),
@@ -204,10 +206,12 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
       if (data) {
         setCity(`${data.localidade}, ${data.uf}`);
         setStreet(data.logradouro);
+        setNeighborhood(data.bairro || '');
       }
     } else {
       setCity('');
       setStreet('');
+      setNeighborhood('');
     }
   };
 
@@ -405,15 +409,6 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
               autoCapitalize="words"
               autoComplete="street-address"
             />
-            <TextInput
-              style={[styles.input, { borderColor: colors.primary, color: colors.text, marginTop: 10 }]}
-              placeholder="Complemento (opcional): apartamento, casa, etc."
-              placeholderTextColor={colors.text + '80'}
-              value={addressComplement}
-              onChangeText={setAddressComplement}
-              autoCapitalize="words"
-              autoComplete="off"
-            />
             {street.length > 0 && (
               <View style={styles.validationItem}>
                 <MaterialIcons 
@@ -428,6 +423,46 @@ export default function RegisterScreen({ onRegister, onBack, onLogin, googleUser
                 </ThemedText>
               </View>
             )}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <ThemedText style={[styles.label, { color: colors.text }]}>Bairro</ThemedText>
+            <TextInput
+              style={[styles.input, { borderColor: colors.primary, color: colors.text }]}
+              placeholder="Bairro (preenchido automaticamente pelo CEP)"
+              placeholderTextColor={colors.text + '80'}
+              value={neighborhood}
+              onChangeText={setNeighborhood}
+              autoCapitalize="words"
+              autoComplete="off"
+            />
+            {neighborhood.length > 0 && (
+              <View style={styles.validationItem}>
+                <MaterialIcons 
+                  name={neighborhood.length >= 2 ? "check-circle" : "error"} 
+                  size={16} 
+                  color={neighborhood.length >= 2 ? colors.secondary : colors.textSecondary} 
+                />
+                <ThemedText style={[styles.validationText, { 
+                    color: neighborhood.length >= 2 ? colors.secondary : colors.textSecondary 
+                  }]}>
+                  {neighborhood.length >= 2 ? 'Bairro válido' : 'Bairro é obrigatório'}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <ThemedText style={[styles.label, { color: colors.text }]}>Complemento</ThemedText>
+            <TextInput
+              style={[styles.input, { borderColor: colors.primary, color: colors.text }]}
+              placeholder="Complemento (opcional): apartamento, casa, etc."
+              placeholderTextColor={colors.text + '80'}
+              value={addressComplement}
+              onChangeText={setAddressComplement}
+              autoCapitalize="words"
+              autoComplete="off"
+            />
           </View>
 
           <View style={styles.inputContainer}>
