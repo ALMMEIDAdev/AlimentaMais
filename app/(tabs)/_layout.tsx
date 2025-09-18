@@ -1,5 +1,4 @@
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -30,7 +29,9 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Início',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <FontAwesome5 name="home" size={20} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -40,6 +41,15 @@ export default function TabLayout() {
          tabBarIcon: ({ color }) => (
   <FontAwesome5 name="hand-holding-heart" size={24} color={color} />
 )
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => (
+            <FontAwesome5 name="user" size={20} color={color} />
+          ),
         }}
       />
     </Tabs>
