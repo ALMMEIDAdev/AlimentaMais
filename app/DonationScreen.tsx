@@ -12,30 +12,32 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { db } from "../firebaseConfig";
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import * as FileSystem from "expo-file-system";
+
+import * as FileSystem from "expo-file-system/legacy";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebaseConfig";
+
+import { useAuth } from '@/contexts/AuthContext';
 
 
 export default function DonationScreen() {
   const theme = useColorScheme() ?? 'light';
   const colors = Colors[theme];
   const router = useRouter();
+  const { user } = useAuth();
 
   const [foodName, setFoodName] = useState('');
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
 
-  const uriToBase64 = async (uri: string) => {
+ const uriToBase64 = async (uri: string) => {
   try {
-    const base64 = await FileSystem.readAsStringAsync(uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
     return base64;
   } catch (error) {
     console.error("Erro ao converter imagem para Base64:", error);
@@ -167,6 +169,7 @@ export default function DonationScreen() {
       descricao: description,
       fotos: photos, 
       criadoEm: serverTimestamp(),
+      uid: user?.id || null,
     });
 
     Alert.alert(

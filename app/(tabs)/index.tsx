@@ -114,7 +114,7 @@ export default function HomeScreen() {
           title="Histórico de Doações"
           description="Acompanhe suas doações realizadas e o impacto que você gerou."
           icon="history"
-          onPress={() => handleFeaturePress('Histórico')}
+          onPress={() => navigation.navigate('DonationHistoryScreen' as never)}
           style={styles.featureCard}
         />
 

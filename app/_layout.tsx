@@ -28,6 +28,7 @@ function AppContent() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="DonationScreen" options={{ headerShown: false }} />
+      <Stack.Screen name="DonationHistoryScreen" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" />
     </Stack>
   );
