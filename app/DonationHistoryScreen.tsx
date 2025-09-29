@@ -57,15 +57,21 @@ export default function DonationHistoryScreen() {
       : '—';
     const thumb = item.fotos && item.fotos.length > 0 ? item.fotos[0] : null;
     return (
-      <View style={[styles.card, { borderColor: colors.border, backgroundColor: 'rgba(0,0,0,0.02)' }]}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => (router as any).push({ pathname: '/donation/[id]', params: { id: item.id } })}
+        style={[styles.card, { borderColor: colors.border, backgroundColor: 'rgba(0,0,0,0.02)' }]}
+      >
         <View style={styles.cardRow}>
           {thumb ? (
-            <Image source={{ uri: thumb }} style={styles.thumb} />
+            <Image source={{ uri: thumb.startsWith('data:') ? thumb : `data:image/jpeg;base64,${thumb}` }} style={styles.thumb} />
           ) : (
             <View style={[styles.thumb, { backgroundColor: colors.primary, opacity: 0.2 }]} />
           )}
           <View style={styles.cardBody}>
-            <ThemedText type="subtitle" style={{ color: colors.text }}>{item.nome}</ThemedText>
+            <ThemedText type="subtitle" style={{ color: colors.text }} numberOfLines={1}>
+              {item.nome}
+            </ThemedText>
             <ThemedText style={{ color: colors.textSecondary }} numberOfLines={2}>
               {item.descricao}
             </ThemedText>
@@ -74,18 +80,20 @@ export default function DonationHistoryScreen() {
             </ThemedText>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
-          <ThemedText style={{ color: colors.primary }}>{'< Voltar'}</ThemedText>
+        <TouchableOpacity onPress={() => router.back()} style={styles.headerSide}>
+          <ThemedText style={{ color: colors.primary }} numberOfLines={1}>{'< Voltar'}</ThemedText>
         </TouchableOpacity>
-        <ThemedText type="title" style={{ color: colors.primary }}>Histórico de Doações</ThemedText>
-        <View style={{ width: 40 }} />
+        <ThemedText type="title" style={[styles.headerTitle, { color: colors.primary }]} numberOfLines={1}>
+          Histórico de Doações
+        </ThemedText>
+        <View style={styles.headerSide} />
       </View>
 
       {loading ? (
@@ -121,6 +129,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     flexDirection: 'row',
+  },
+  headerSide: {
+    width: 80,
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
   },
   loadingArea: {
     flex: 1,

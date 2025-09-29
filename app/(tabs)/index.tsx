@@ -1,34 +1,58 @@
-import { FontAwesome5, MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import React from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { FeatureCard } from '@/components/FeatureCard';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
-import { useAuth } from '@/contexts/AuthContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { FeatureCard } from "@/components/FeatureCard";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Colors } from "@/constants/Colors";
+import { useAuth } from "@/contexts/AuthContext";
+import { db } from "@/firebaseConfig";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { collection, getCountFromServer } from "firebase/firestore";
 
 export default function HomeScreen() {
-  const theme = useColorScheme() ?? 'light';
+  const theme = useColorScheme() ?? "light";
   const colors = Colors[theme];
   const { logout } = useAuth();
   const navigation = useNavigation<any>();
 
+  const [donationsCount, setDonationsCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchDonationsCount = async () => {
+      try {
+        const coll = collection(db, "doacoes");
+        const snapshot = await getCountFromServer(coll);
+        const count = snapshot.data().count;
+        setDonationsCount(count);
+      } catch (e) {
+        console.error("Erro ao obter contagem de doações:", e);
+        setDonationsCount(null);
+      }
+    };
+    fetchDonationsCount();
+  }, []);
+
   const handleFeaturePress = (feature: string) => {
-    Alert.alert('AlimentaMais', `Funcionalidade "${feature}" em desenvolvimento!`);
+    Alert.alert(
+      "AlimentaMais",
+      `Funcionalidade "${feature}" em desenvolvimento!`
+    );
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Tem certeza que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: logout },
-      ]
-    );
+    Alert.alert("Logout", "Tem certeza que deseja sair?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Sair", style: "destructive", onPress: logout },
+    ]);
   };
 
   return (
@@ -39,42 +63,71 @@ export default function HomeScreen() {
       <ThemedView style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.headerTitleRow}>
-            <FontAwesome5 name="utensils" size={26} color={colors.primary} style={{ marginRight: 8 }} />
-            <ThemedText type="title" style={[styles.welcomeText, { color: colors.primary }]}>
+            <FontAwesome5
+              name="utensils"
+              size={26}
+              color={colors.primary}
+              style={{ marginRight: 8 }}
+            />
+            <ThemedText
+              type="title"
+              style={[styles.welcomeText, { color: colors.primary }]}
+            >
               AlimentaMais
             </ThemedText>
           </View>
-          
+
           <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
             <MaterialIcons name="logout" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         <ThemedText style={[styles.subtitle, { color: colors.text }]}>
-          Conectando quem tem com quem precisa. Juntos contra o desperdício de alimentos!
+          Conectando quem tem com quem precisa. Juntos contra o desperdício de
+          alimentos!
         </ThemedText>
       </ThemedView>
 
       <ThemedView style={styles.statsSection}>
-        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+        <ThemedText
+          type="subtitle"
+          style={[styles.sectionTitle, { color: colors.primary }]}
+        >
           Nossa Comunidade
         </ThemedText>
 
         <ThemedView style={styles.statsRow}>
-          <ThemedView style={[styles.statCard, { backgroundColor: colors.primary }]}>
-            <ThemedText style={[styles.statNumber, { color: 'white' }]}>1,234</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: 'white' }]}>Doações Realizadas</ThemedText>
+          <ThemedView
+            style={[styles.statCard, { backgroundColor: colors.primary }]}
+          >
+            <ThemedText style={[styles.statNumber, { color: "white" }]}>
+              {donationsCount !== null
+                ? donationsCount.toLocaleString()
+                : "..."}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: "white" }]}>
+              Doações Realizadas
+            </ThemedText>
           </ThemedView>
 
-          <ThemedView style={[styles.statCard, { backgroundColor: colors.secondary }]}>
-            <ThemedText style={[styles.statNumber, { color: 'white' }]}>567</ThemedText>
-            <ThemedText style={[styles.statLabel, { color: 'white' }]}>Famílias Ajudadas</ThemedText>
+          <ThemedView
+            style={[styles.statCard, { backgroundColor: colors.secondary }]}
+          >
+            <ThemedText style={[styles.statNumber, { color: "white" }]}>
+              567
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: "white" }]}>
+              Famílias Ajudadas
+            </ThemedText>
           </ThemedView>
         </ThemedView>
       </ThemedView>
 
       <ThemedView style={styles.featuresSection}>
-        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+        <ThemedText
+          type="subtitle"
+          style={[styles.sectionTitle, { color: colors.primary }]}
+        >
           Como Participar
         </ThemedText>
 
@@ -82,15 +135,7 @@ export default function HomeScreen() {
           title="Fazer uma Doação"
           description="Cadastre alimentos que você tem disponível para doação. Ajude quem mais precisa!"
           icon="volunteer-activism"
-          onPress={() => navigation.navigate('DonationScreen')}
-          style={styles.featureCard}
-        />
-
-        <FeatureCard
-          title="Receber Doações"
-          description="Encontre alimentos disponíveis na sua região. Receba com dignidade."
-          icon="food-bank"
-          onPress={() => handleFeaturePress('Receber Doações')}
+          onPress={() => navigation.navigate("DonationScreen")}
           style={styles.featureCard}
         />
 
@@ -98,7 +143,7 @@ export default function HomeScreen() {
           title="Pontos de Coleta"
           description="Localize pontos de coleta próximos a você para facilitar a entrega."
           icon="location-on"
-          onPress={() => handleFeaturePress('Pontos de Coleta')}
+          onPress={() => handleFeaturePress("Pontos de Coleta")}
           style={styles.featureCard}
         />
 
@@ -106,7 +151,7 @@ export default function HomeScreen() {
           title="Organizações Parceiras"
           description="Conecte-se com ONGs e instituições que trabalham contra a fome."
           icon="business"
-          onPress={() => handleFeaturePress('Organizações Parceiras')}
+          onPress={() => handleFeaturePress("Organizações Parceiras")}
           style={styles.featureCard}
         />
 
@@ -114,7 +159,7 @@ export default function HomeScreen() {
           title="Histórico de Doações"
           description="Acompanhe suas doações realizadas e o impacto que você gerou."
           icon="history"
-          onPress={() => navigation.navigate('DonationHistoryScreen' as never)}
+          onPress={() => navigation.navigate("DonationHistoryScreen" as never)}
           style={styles.featureCard}
         />
 
@@ -122,13 +167,16 @@ export default function HomeScreen() {
           title="Comunidade"
           description="Compartilhe experiências e inspire outros a participar da rede solidária."
           icon="group"
-          onPress={() => handleFeaturePress('Comunidade')}
+          onPress={() => handleFeaturePress("Comunidade")}
           style={styles.featureCard}
         />
       </ThemedView>
 
       <ThemedView style={styles.impactSection}>
-        <ThemedText type="subtitle" style={[styles.sectionTitle, { color: colors.primary }]}>
+        <ThemedText
+          type="subtitle"
+          style={[styles.sectionTitle, { color: colors.primary }]}
+        >
           Nosso Impacto
         </ThemedText>
         <ThemedText style={[styles.impactText, { color: colors.text }]}>
@@ -144,7 +192,7 @@ export default function HomeScreen() {
 
       <ThemedView style={styles.footer}>
         <ThemedText style={[styles.footerText, { color: colors.text }]}>
-          💝 Juntos somos mais fortes contra a fome!
+          💝 Todos juntos contra a fome!
         </ThemedText>
       </ThemedView>
     </ScrollView>
@@ -158,20 +206,20 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 40,
     paddingBottom: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
     paddingHorizontal: 20,
     marginBottom: 8,
   },
   headerTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     flex: 1,
   },
   logoutButton: {
@@ -179,11 +227,11 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   subtitle: {
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.8,
     lineHeight: 24,
   },
@@ -191,8 +239,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: 10,
     marginTop: 12,
   },
@@ -200,8 +248,8 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -209,12 +257,12 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     opacity: 0.9,
   },
   featuresSection: {
@@ -222,7 +270,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
   },
   featureCard: {
@@ -230,20 +278,20 @@ const styles = StyleSheet.create({
   },
   impactSection: {
     marginTop: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   impactText: {
     fontSize: 16,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   footer: {
     marginTop: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   footerText: {
     fontSize: 16,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    fontStyle: "italic",
+    textAlign: "center",
   },
 });

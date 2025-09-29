@@ -1,4 +1,3 @@
-import { FeatureCard } from '@/components/FeatureCard';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -7,7 +6,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function DonationsScreen() {
   const theme = useColorScheme() ?? 'light';
@@ -33,7 +32,9 @@ export default function DonationsScreen() {
   }, []);
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+    >
       <ThemedView style={styles.header}>
         <ThemedText type="title" style={[styles.title, { color: colors.primary }]}>🍽️ Doações Disponíveis</ThemedText>
         <ThemedText style={[styles.subtitle, { color: colors.text }]}>Alimentos disponíveis para doação na sua região</ThemedText>
@@ -48,15 +49,41 @@ export default function DonationsScreen() {
               Nenhuma doação disponível no momento.
             </ThemedText>
           ) : (
-            donations.map((donation) => (
-              <FeatureCard
-                key={donation.id}
-                title={donation.nome}
-                description={donation.descricao}
-                icon="volunteer-activism"
-                onPress={() => (router as any).push({ pathname: '/donation/[id]', params: { id: donation.id } })}
-              />
-            ))
+            donations.map((donation: any) => {
+              const createdAt = donation.criadoEm?.seconds
+                ? new Date(donation.criadoEm.seconds * 1000).toLocaleString('pt-BR')
+                : null;
+              const thumb = donation.fotos && donation.fotos.length > 0 ? donation.fotos[0] : null;
+              return (
+                <TouchableOpacity
+                  key={donation.id}
+                  activeOpacity={0.85}
+                  onPress={() => (router as any).push({ pathname: '/donation/[id]', params: { id: donation.id } })}
+                  style={[styles.card, { borderColor: colors.border, backgroundColor: 'rgba(0,0,0,0.02)' }]}
+                >
+                  <View style={styles.cardRow}>
+                    {thumb ? (
+                      <Image source={{ uri: (typeof thumb === 'string' && thumb.startsWith('data:')) ? thumb : `data:image/jpeg;base64,${thumb}` }} style={styles.thumb} />
+                    ) : (
+                      <View style={[styles.thumb, { backgroundColor: colors.primary, opacity: 0.2 }]} />
+                    )}
+                    <View style={styles.cardBody}>
+                      <ThemedText type="subtitle" style={{ color: colors.text }} numberOfLines={1}>
+                        {donation.nome}
+                      </ThemedText>
+                      <ThemedText style={{ color: colors.textSecondary }} numberOfLines={2}>
+                        {donation.descricao}
+                      </ThemedText>
+                      {createdAt && (
+                        <ThemedText style={{ marginTop: 6, fontSize: 12, color: colors.textSecondary }}>
+                          {createdAt}
+                        </ThemedText>
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
           )}
         </ThemedView>
       )}
@@ -91,7 +118,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   section: {
-    padding: 20,
+    paddingTop: 8,
     backgroundColor: 'transparent',
   },
   sectionTitle: {
@@ -109,5 +136,24 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     opacity: 0.8,
+  },
+  card: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  thumb: {
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  cardBody: {
+    flex: 1,
   },
 });
